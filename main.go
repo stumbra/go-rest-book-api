@@ -115,24 +115,24 @@ func addBook(ctx *gin.Context){
     ctx.IndentedJSON(http.StatusCreated, newBook)
 }
 
-func getBookById(id string) (*Book, error){
+func getBookById(id string) (*Book, *int ,error){
     for i, book := range books {
         if book.ID == id {
-            return &books[i], nil
+            return &books[i], &i, nil
         }
     }
 
-    return nil, errors.New("Book not found")
+    return nil, nil, errors.New("Book not found")
 }
 
 
 func getBook(ctx *gin.Context){
     id := ctx.Param("id")
 
-    book, err := getBookById(id)
+    book, _, err := getBookById(id)
 
     if err != nil {
-        ctx.IndentedJSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+        ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"})
         return
     }
 
@@ -143,15 +143,29 @@ func getBook(ctx *gin.Context){
 func updateBookAvailability(ctx *gin.Context){
     id := ctx.Param("id")
 
-    book, err := getBookById(id)
+    book, _, err := getBookById(id)
 
     if err != nil {
-        ctx.IndentedJSON(http.StatusNotFound, gin.H{"error": "Book not found"})
+        ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"})
         return
     }
 
     book.InStore = !book.InStore
     ctx.IndentedJSON(http.StatusOK, book)
+}
+
+func removeBook(ctx *gin.Context){
+    id := ctx.Param("id")
+
+    _, index, err := getBookById(id)
+
+    if err != nil {
+        ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found"})
+        return
+    }
+
+    books = append(books[:*index], books[*index + 1:]...)
+    ctx.IndentedJSON(http.StatusOK,gin.H{"message": "Book removed successfully"})
 }
 
 func main(){
@@ -161,6 +175,7 @@ func main(){
     router.POST("/api/v1/books", addBook)
     router.GET("/api/v1/books/:id", getBook)
     router.PATCH("/api/v1/books/:id", updateBookAvailability)
+    router.DELETE("/api/v1/books/:id",removeBook)
 
 	router.Run("localhost:9090")
 }
