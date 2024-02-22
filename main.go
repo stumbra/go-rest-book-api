@@ -4,7 +4,11 @@ import (
 	"errors"
 	"net/http"
 
+	_ "go-rest-book-api/docs"
+
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 type Book struct {
@@ -99,6 +103,15 @@ var books = []Book{
 	},
 }
 
+// getBooks
+//
+//		@Summary		Retrieve books
+//		@Description	Get books
+//		@Tags			books
+//		@Accept			json
+//		@Produce		json
+//	 @Success      200  {array}   Book
+//		@Router			/books [get]
 func getBooks(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, books)
 }
@@ -166,14 +179,41 @@ func removeBook(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, gin.H{"message": "Book removed successfully"})
 }
 
+// @title           Swagger Example API
+// @version         1.0
+// @description     This is a sample server celler server.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:9090
+// @BasePath  /api/v1
+
+// @securityDefinitions.basic  BasicAuth
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	router := gin.Default()
 
-	router.GET("/api/v1/books", getBooks)
-	router.POST("/api/v1/books", addBook)
-	router.GET("/api/v1/books/:id", getBook)
-	router.PATCH("/api/v1/books/:id", updateBookAvailability)
-	router.DELETE("/api/v1/books/:id", removeBook)
+	v1 := router.Group("/api/v1")
 
-	router.Run("localhost:9090")
+	{
+		books := v1.Group("/books")
+		{
+			books.GET("", getBooks)
+			books.POST("", addBook)
+			books.GET(":id", getBook)
+			books.PATCH(":id", updateBookAvailability)
+			books.DELETE(":id", removeBook)
+		}
+	}
+
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.Run(":9090")
 }

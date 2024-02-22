@@ -1,0 +1,55 @@
+basePath: /api/v1
+definitions:
+  main.Book:
+    properties:
+      author:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      in_store:
+        type: boolean
+      published:
+        type: integer
+      title:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:9090
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /books:
+    get:
+      consumes:
+      - application/json
+      description: Get books
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.Book'
+            type: array
+      summary: Retrieve books
+      tags:
+      - books
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
