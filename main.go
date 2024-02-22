@@ -20,6 +20,11 @@ type Book struct {
 	InStore     bool   `json:"in_store"`
 }
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
+
 var books = []Book{
 	{
 		ID:          "1",
@@ -103,19 +108,26 @@ var books = []Book{
 	},
 }
 
-// getBooks
-//
-//		@Summary		Retrieve books
-//		@Description	Get books
-//		@Tags			books
-//		@Accept			json
-//		@Produce		json
-//	 @Success      200  {array}   Book
-//		@Router			/books [get]
+// @Summary Get list of books
+// @Description Get list of books
+// @ID get-books
+// @Produce  json
+// @Success 200 {array} Book
+// @Failure 500 {object} ErrorResponse
+// @Router /books [get]
 func getBooks(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, books)
 }
 
+// @Summary Add a new book
+// @Description Add a new book
+// @ID add-book
+// @Accept  json
+// @Produce  json
+// @Param book body Book true "Book object"
+// @Success 201 {object} Book
+// @Failure 400 {object} ErrorResponse
+// @Router /books [post]
 func addBook(ctx *gin.Context) {
 	var newBook Book
 
@@ -138,26 +150,42 @@ func getBookById(id string) (*Book, *int, error) {
 	return nil, nil, errors.New("Book not found")
 }
 
+// @Summary Get a book by ID
+// @Description Get a book by ID
+// @ID get-book-by-id
+// @Produce  json
+// @Param id path string true "Book ID"
+// @Success 200 {object} Book
+// @Failure 404 {object} ErrorResponse
+// @Router /books/{id} [get]
 func getBook(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	book, _, err := getBookById(id)
 
 	if err != nil {
-		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found", "status": http.StatusNotFound})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Book not found", "status": http.StatusNotFound})
 		return
 	}
 
 	ctx.IndentedJSON(http.StatusFound, book)
 }
 
+// @Summary Update book availability
+// @Description Update book availability
+// @ID update-book-availability
+// @Produce  json
+// @Param id path string true "Book ID"
+// @Success 200 {object} Book
+// @Failure 404 {object} ErrorResponse
+// @Router /books/{id} [patch]
 func updateBookAvailability(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	book, _, err := getBookById(id)
 
 	if err != nil {
-		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found", "status": http.StatusNotFound})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Book not found", "status": http.StatusNotFound})
 		return
 	}
 
@@ -165,13 +193,21 @@ func updateBookAvailability(ctx *gin.Context) {
 	ctx.IndentedJSON(http.StatusOK, book)
 }
 
+// @Summary Remove a book
+// @Description Remove a book
+// @ID remove-book
+// @Produce  json
+// @Param id path string true "Book ID"
+// @Success 200 {string} string
+// @Failure 404 {object} ErrorResponse
+// @Router /books/{id} [delete]
 func removeBook(ctx *gin.Context) {
 	id := ctx.Param("id")
 
 	_, index, err := getBookById(id)
 
 	if err != nil {
-		ctx.IndentedJSON(http.StatusNotFound, gin.H{"message": "Book not found", "status": http.StatusNotFound})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "Book not found", "status": http.StatusNotFound})
 		return
 	}
 
